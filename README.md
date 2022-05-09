@@ -14,5 +14,6 @@ The add-on tries to save the directory in relative form, if possible, to make it
 <img src="quick-export-2.jpg" width = "500px">
 
 ## Known issues
- * If blend project is not saved, the export setting can be lost within the session
+ * If the blend project is new and not yet saved, the export setting can be lost within the session
  * It will try to export each time you change any of the the parameters, as long as there is a valid export path.
+ * Only supports OBJ/FBX, and only global scaling, other export parameters are hard coded (but it is quite easy to change in the script)
