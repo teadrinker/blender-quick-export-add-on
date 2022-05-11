@@ -93,7 +93,7 @@ class TeadrinkerQuickExport(bpy.types.Operator):
                 export_dir_relative = False
                 try:
                     export_dir = os.path.relpath(self.out_dir, blend_dir) # this fails on windows if .blend path and export path are on different drive letters
-                    export_dir_relative = true
+                    export_dir_relative = True
                 except: pass
 
                 save_cfg(settings_fullpath, { 'out_format' : self.out_format, 'scale' : self.scale, 'override_filename' : self.override_filename, 'dir' : export_dir, 'relative' : export_dir_relative })
