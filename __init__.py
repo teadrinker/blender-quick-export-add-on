@@ -13,8 +13,8 @@
 
 bl_info = {
     "name": "teadrinker quick export",
-    "version": (1, 0, 0),
-    "blender": (2, 80, 0),
+    "version": (1, 1, 0),
+    "blender": (3, 20, 0),
     "description": "Export using CRTL-ALT-S, settings are saved in a file next to .blend",
     "location": "View3D > Header",
     "doc_url": "https://github.com/teadrinker/blender-quick-export-add-on",
@@ -59,10 +59,10 @@ class teadrinker_quick_export(bpy.types.Operator):
     bl_label = "teadrinker quick export"
     bl_options = {'REGISTER', 'UNDO'}
 
-    out_format:        bpy.props.EnumProperty  (name='Format', items=[('obj', 'OBJ', ''), ('fbx', 'FBX', '')], default = 'obj')
+    out_format:        bpy.props.EnumProperty  (name='Format', items=[('obj', 'OBJ', ''), ('fbx', 'FBX', ''),('glb', 'glTF Binary (.glb)', ''),('gltf', 'glTF Separate (.gltf + .bin + textures)', '')], default = 'obj')
     out_dir:           bpy.props.StringProperty(name = "Output Directory", subtype = 'DIR_PATH',               default = '<PLEASE SET DIR!>')
     override_filename: bpy.props.StringProperty(name = "Override Filename", subtype = 'FILE_NAME',             default = '')
-    scale:             bpy.props.FloatProperty (name = "Scale",                                                default = 1.0)
+    scale:             bpy.props.FloatProperty (name = "Scale (only obj/fbx)",                                 default = 1.0)
  
     def execute(self, context):
 
@@ -114,18 +114,26 @@ class teadrinker_quick_export(bpy.types.Operator):
         #console_print('out_dir ' + self.out_dir)
         #console_print('export_fullpath ' + export_fullpath)
 
-        bpy.ops.object.select_all(action='SELECT')
+        with context.temp_override(**context.copy()):
 
-        if self.out_format == 'obj':
-            console_print('teadrinker quick export: Writing obj: ' + export_fullpath)
-            bpy.ops.export_scene.obj(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=True, group_by_material=True)
-        elif self.out_format == 'fbx':
-            console_print('teadrinker quick export: Writing fbx: ' + export_fullpath)
-            bpy.ops.export_scene.fbx(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=True)
-        else:
-            raise Exception('teadrinker quick export, no such format ' + self.out_format)
+            bpy.ops.object.select_all(action='SELECT')
 
-        bpy.ops.object.select_all(action='DESELECT')
+            if self.out_format == 'obj':
+                console_print('teadrinker quick export: Writing obj: ' + export_fullpath)
+                bpy.ops.export_scene.obj(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=True, group_by_material=True)
+            elif self.out_format == 'fbx':
+                console_print('teadrinker quick export: Writing fbx: ' + export_fullpath)
+                bpy.ops.export_scene.fbx(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=True)
+            elif self.out_format == 'glb':
+                console_print('teadrinker quick export: Writing glb: ' + export_fullpath)
+                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLB')
+            elif self.out_format == 'gltf':
+                console_print('teadrinker quick export: Writing gltf: ' + export_fullpath)
+                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLTF_SEPARATE')
+            else:
+                raise Exception('teadrinker quick export, no such format ' + self.out_format)
+
+        #bpy.ops.object.select_all(action='DESELECT')
 
         #obj options
 
