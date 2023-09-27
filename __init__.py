@@ -133,7 +133,7 @@ class teadrinker_quick_export(bpy.types.Operator):
             else:
                 raise Exception('teadrinker quick export, no such format ' + self.out_format)
 
-        #bpy.ops.object.select_all(action='DESELECT')
+            bpy.ops.object.select_all(action='DESELECT')
 
         #obj options
 
