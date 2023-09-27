@@ -126,10 +126,10 @@ class teadrinker_quick_export(bpy.types.Operator):
                 bpy.ops.export_scene.fbx(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=True)
             elif self.out_format == 'glb':
                 console_print('teadrinker quick export: Writing glb: ' + export_fullpath)
-                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLB')
+                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLB', export_apply=True) # WARNING: export_apply prevents exporting shape keys 
             elif self.out_format == 'gltf':
                 console_print('teadrinker quick export: Writing gltf: ' + export_fullpath)
-                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLTF_SEPARATE')
+                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLTF_SEPARATE', export_apply=True) # WARNING: export_apply prevents exporting shape keys 
             else:
                 raise Exception('teadrinker quick export, no such format ' + self.out_format)
 
