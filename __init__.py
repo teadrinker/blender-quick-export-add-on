@@ -62,8 +62,15 @@ class teadrinker_quick_export(bpy.types.Operator):
     out_format:        bpy.props.EnumProperty  (name='Format', items=[('obj', 'OBJ', ''), ('fbx', 'FBX', ''),('glb', 'glTF Binary (.glb)', ''),('gltf', 'glTF Separate (.gltf + .bin + textures)', '')], default = 'obj')
     out_dir:           bpy.props.StringProperty(name = "Output Directory", subtype = 'DIR_PATH',               default = '<PLEASE SET DIR!>')
     override_filename: bpy.props.StringProperty(name = "Override Filename", subtype = 'FILE_NAME',             default = '')
+    name_from_selection:bpy.props.BoolProperty  (name = "Filename from selection",                             default = False)
     scale:             bpy.props.FloatProperty (name = "Scale (only obj/fbx)",                                 default = 1.0)
  
+    def get_selected_object_name():
+        if bpy.context.selected_objects:
+            return bpy.context.selected_objects[0].name
+        else:
+            return "no selection"
+
     def execute(self, context):
 
         global tea_quick_export_print_context
@@ -86,6 +93,7 @@ class teadrinker_quick_export(bpy.types.Operator):
                         self.out_dir = os.path.abspath(export_dir)
                         self.out_format = cfg['out_format']
                         self.override_filename = cfg['override_filename']
+                        self.name_from_selection = cfg['name_from_selection']
                         self.scale = cfg['scale']
                 except: pass
             else:
@@ -96,7 +104,7 @@ class teadrinker_quick_export(bpy.types.Operator):
                     export_dir_relative = True
                 except: pass
 
-                save_cfg(settings_fullpath, { 'out_format' : self.out_format, 'scale' : self.scale, 'override_filename' : self.override_filename, 'dir' : export_dir, 'relative' : export_dir_relative })
+                save_cfg(settings_fullpath, { 'out_format' : self.out_format, 'scale' : self.scale, 'override_filename' : self.override_filename, 'name_from_selection' : self.name_from_selection, 'dir' : export_dir, 'relative' : export_dir_relative })
         else:
             console_print('teadrinker quick export: Warning, settings will not be saved')
 
@@ -107,6 +115,13 @@ class teadrinker_quick_export(bpy.types.Operator):
             return {'FINISHED'}
 
         export_filename = self.override_filename if self.override_filename != '' else replace_caseinsensitive('.blend', '', blend_filename)
+        if self.name_from_selection:
+            sel_name = teadrinker_quick_export.get_selected_object_name()
+            if sel_name != "no selection":
+                export_filename = replace_caseinsensitive('.blend', '', sel_name)                
+            else:
+                console_print('teadrinker quick export: Warning, settings will not be saved')
+
         export_fullpath = os.path.join(self.out_dir, export_filename + "." + self.out_format)
 
         #console_print('blend_dir ' + blend_dir)
@@ -116,7 +131,8 @@ class teadrinker_quick_export(bpy.types.Operator):
 
         with context.temp_override(**context.copy()):
 
-            bpy.ops.object.select_all(action='SELECT')
+            if not self.name_from_selection:
+                bpy.ops.object.select_all(action='SELECT') # this dont actually work?
 
             if self.out_format == 'obj':
                 console_print('teadrinker quick export: Writing obj: ' + export_fullpath)
@@ -133,7 +149,8 @@ class teadrinker_quick_export(bpy.types.Operator):
             else:
                 raise Exception('teadrinker quick export, no such format ' + self.out_format)
 
-            bpy.ops.object.select_all(action='DESELECT')
+            if not self.name_from_selection:
+                bpy.ops.object.select_all(action='DESELECT')
 
         #obj options
 
