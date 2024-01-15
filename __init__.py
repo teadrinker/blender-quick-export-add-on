@@ -1,6 +1,6 @@
 # teadrinker quick export
 #
-# * Export using short key CRTL-ALT-S to predefined directory
+# * Export using short key CRTL-SHIFT-E to predefined directory
 # * One-click export with "Export"-button in 3D window header
 # * Settings and choosen directory is saved in a config file next to the blend file
 # * Objects marked as "Disable Selection" will not be exported
@@ -13,9 +13,9 @@
 
 bl_info = {
     "name": "teadrinker quick export",
-    "version": (1, 1, 0),
-    "blender": (3, 20, 0),
-    "description": "Export using CRTL-ALT-S, settings are saved in a file next to .blend",
+    "version": (1, 2, 0),
+    "blender": (4, 0, 0),
+    "description": "Export using CRTL-SHIFT-E, settings are saved in a file next to .blend",
     "location": "View3D > Header",
     "doc_url": "https://github.com/teadrinker/blender-quick-export-add-on",
     "category": "Import-Export",
@@ -63,6 +63,7 @@ class teadrinker_quick_export(bpy.types.Operator):
     out_dir:           bpy.props.StringProperty(name = "Output Directory", subtype = 'DIR_PATH',               default = '<PLEASE SET DIR!>')
     override_filename: bpy.props.StringProperty(name = "Override Filename", subtype = 'FILE_NAME',             default = '')
     name_from_selection:bpy.props.BoolProperty  (name = "Filename from selection",                             default = False)
+    selected_only:     bpy.props.BoolProperty  (name = "Export Selected Only",                                 default = False)
     scale:             bpy.props.FloatProperty (name = "Scale (only obj/fbx)",                                 default = 1.0)
  
     def get_selected_object_name():
@@ -94,6 +95,7 @@ class teadrinker_quick_export(bpy.types.Operator):
                         self.out_format = cfg['out_format']
                         self.override_filename = cfg['override_filename']
                         self.name_from_selection = cfg['name_from_selection']
+                        self.selected_only = cfg['selected_only']
                         self.scale = cfg['scale']
                 except: pass
             else:
@@ -104,7 +106,7 @@ class teadrinker_quick_export(bpy.types.Operator):
                     export_dir_relative = True
                 except: pass
 
-                save_cfg(settings_fullpath, { 'out_format' : self.out_format, 'scale' : self.scale, 'override_filename' : self.override_filename, 'name_from_selection' : self.name_from_selection, 'dir' : export_dir, 'relative' : export_dir_relative })
+                save_cfg(settings_fullpath, { 'out_format' : self.out_format, 'scale' : self.scale, 'override_filename' : self.override_filename, 'name_from_selection' : self.name_from_selection, 'selected_only' : self.selected_only, 'dir' : export_dir, 'relative' : export_dir_relative })
         else:
             console_print('teadrinker quick export: Warning, settings will not be saved')
 
@@ -129,28 +131,31 @@ class teadrinker_quick_export(bpy.types.Operator):
         #console_print('out_dir ' + self.out_dir)
         #console_print('export_fullpath ' + export_fullpath)
 
-        with context.temp_override(**context.copy()):
+        #with context.temp_override(**context.copy()):
 
-            if not self.name_from_selection:
-                bpy.ops.object.select_all(action='SELECT') # this dont actually work?
+        # if not self.name_from_selection:
+        #     bpy.ops.object.select_all(action='SELECT') # this dont actually work?
 
-            if self.out_format == 'obj':
-                console_print('teadrinker quick export: Writing obj: ' + export_fullpath)
-                bpy.ops.export_scene.obj(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=True, group_by_material=True)
-            elif self.out_format == 'fbx':
-                console_print('teadrinker quick export: Writing fbx: ' + export_fullpath)
-                bpy.ops.export_scene.fbx(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=True)
-            elif self.out_format == 'glb':
-                console_print('teadrinker quick export: Writing glb: ' + export_fullpath)
-                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLB', export_apply=True) # WARNING: export_apply prevents exporting shape keys 
-            elif self.out_format == 'gltf':
-                console_print('teadrinker quick export: Writing gltf: ' + export_fullpath)
-                bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=True, export_format='GLTF_SEPARATE', export_apply=True) # WARNING: export_apply prevents exporting shape keys 
-            else:
-                raise Exception('teadrinker quick export, no such format ' + self.out_format)
+        if self.out_format == 'obj':
+            console_print('teadrinker quick export: Writing obj: ' + export_fullpath)
+            bpy.ops.wm.obj_export(filepath=export_fullpath, global_scale=self.scale, check_existing=False, export_selected_objects=self.selected_only, export_material_groups=True) # export_material_groups is same as old API group_by_material param? 
+        elif self.out_format == 'fbx':
+            console_print('teadrinker quick export: Writing fbx: ' + export_fullpath)
+            bpy.ops.export_scene.fbx(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=self.selected_only)
+        elif self.out_format == 'glb':
+            console_print('teadrinker quick export: Writing glb: ' + export_fullpath)
+            bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=self.selected_only, export_format='GLB', export_apply=False) # WARNING: export_apply prevents exporting shape keys 
+        elif self.out_format == 'gltf':
+            console_print('teadrinker quick export: Writing gltf: ' + export_fullpath)
+            bpy.ops.export_scene.gltf(filepath=export_fullpath,                         check_existing=False, use_selection=self.selected_only, export_format='GLTF_SEPARATE', export_apply=False) # WARNING: export_apply prevents exporting shape keys 
+            # bpy.ops.export_scene.gltf(filepath=export_fullpath, export_format='GLTF_SEPARATE') 
+        else:
+            raise Exception('teadrinker quick export, no such format ' + self.out_format)
 
-            if not self.name_from_selection:
-                bpy.ops.object.select_all(action='DESELECT')
+        # if not self.name_from_selection:
+        #     bpy.ops.object.select_all(action='DESELECT')
+
+
 
         #obj options
 
@@ -202,7 +207,8 @@ def register():
     kc = wm.keyconfigs.addon
     if kc:
         km = wm.keyconfigs.addon.keymaps.new(name='Object Mode', space_type='EMPTY')
-        kmi = km.keymap_items.new(teadrinker_quick_export.bl_idname, 'S', 'PRESS', ctrl=True, alt=True)
+        #kmi = km.keymap_items.new(teadrinker_quick_export.bl_idname, 'S', 'PRESS', ctrl=True, alt=True) # now used for save incremental
+        kmi = km.keymap_items.new(teadrinker_quick_export.bl_idname, 'E', 'PRESS', ctrl=True, shift=True) 
         #kmi.properties.total = 4
         kmi.properties.out_dir = '<PLEASE SET DIR!>'
         kmi.properties.out_format = 'obj'
