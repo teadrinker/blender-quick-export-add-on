@@ -64,6 +64,7 @@ class teadrinker_quick_export(bpy.types.Operator):
     override_filename: bpy.props.StringProperty(name = "Override Filename", subtype = 'FILE_NAME',             default = '')
     name_from_selection:bpy.props.BoolProperty  (name = "Filename from selection",                             default = False)
     selected_only:     bpy.props.BoolProperty  (name = "Export Selected Only",                                 default = False)
+    obj_merge_by_mat:  bpy.props.BoolProperty  (name = "Merge By Material (obj)",                              default = False)
     scale:             bpy.props.FloatProperty (name = "Scale (only obj/fbx)",                                 default = 1.0)
  
     def get_selected_object_name():
@@ -96,6 +97,7 @@ class teadrinker_quick_export(bpy.types.Operator):
                         self.override_filename = cfg['override_filename']
                         self.name_from_selection = cfg['name_from_selection']
                         self.selected_only = cfg['selected_only']
+                        self.obj_merge_by_mat = cfg['obj_merge_by_mat']
                         self.scale = cfg['scale']
                 except: pass
             else:
@@ -106,7 +108,7 @@ class teadrinker_quick_export(bpy.types.Operator):
                     export_dir_relative = True
                 except: pass
 
-                save_cfg(settings_fullpath, { 'out_format' : self.out_format, 'scale' : self.scale, 'override_filename' : self.override_filename, 'name_from_selection' : self.name_from_selection, 'selected_only' : self.selected_only, 'dir' : export_dir, 'relative' : export_dir_relative })
+                save_cfg(settings_fullpath, { 'out_format' : self.out_format, 'scale' : self.scale, 'override_filename' : self.override_filename, 'name_from_selection' : self.name_from_selection, 'selected_only' : self.selected_only, 'obj_merge_by_mat' : self.obj_merge_by_mat ,'dir' : export_dir, 'relative' : export_dir_relative })
         else:
             console_print('teadrinker quick export: Warning, settings will not be saved')
 
@@ -138,7 +140,7 @@ class teadrinker_quick_export(bpy.types.Operator):
 
         if self.out_format == 'obj':
             console_print('teadrinker quick export: Writing obj: ' + export_fullpath)
-            bpy.ops.wm.obj_export(filepath=export_fullpath, global_scale=self.scale, check_existing=False, export_selected_objects=self.selected_only, export_material_groups=True) # export_material_groups is same as old API group_by_material param? 
+            bpy.ops.wm.obj_export(filepath=export_fullpath, global_scale=self.scale, check_existing=False, export_selected_objects=self.selected_only, export_material_groups=self.obj_merge_by_mat, export_object_groups=not self.obj_merge_by_mat) # export_material_groups is same as old API group_by_material param? 
         elif self.out_format == 'fbx':
             console_print('teadrinker quick export: Writing fbx: ' + export_fullpath)
             bpy.ops.export_scene.fbx(filepath=export_fullpath, global_scale=self.scale, check_existing=False, use_selection=self.selected_only)
