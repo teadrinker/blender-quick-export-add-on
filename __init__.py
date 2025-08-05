@@ -11,15 +11,16 @@
 # https://www.gnu.org/licenses/gpl-3.0.html
 
 
-bl_info = {
-    "name": "teadrinker quick export",
-    "version": (1, 2, 0),
-    "blender": (4, 0, 0),
-    "description": "Export using CRTL-SHIFT-E, settings are saved in a file next to .blend",
-    "location": "View3D > Header",
-    "doc_url": "https://github.com/teadrinker/blender-quick-export-add-on",
-    "category": "Import-Export",
-}
+#    bl_info = {
+#        "name": "teadrinker quick export",
+#        "version": (1, 2, 0),
+#        "blender": (4, 2, 0),
+#        "description": "Export using CRTL-SHIFT-E, settings are saved in a file next to .blend",
+#        "location": "View3D > Header",
+#        "doc_url": "https://github.com/teadrinker/blender-quick-export-add-on",
+#        "category": "Import-Export",
+#    }
+
 
 import os
 import bpy

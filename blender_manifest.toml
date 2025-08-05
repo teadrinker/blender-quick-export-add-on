@@ -1,0 +1,18 @@
+schema_version = "1.0.0"
+
+id = "teadrinker_quick_export"
+version = "1.2.0"
+name = "teadrinker quick export"
+tagline = "Export using CRTL-SHIFT-E, settings saved next to .blend file"
+
+maintainer = "https://github.com/teadrinker"
+type = "add-on"
+
+website = "https://github.com/teadrinker/blender-quick-export-add-on"
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
